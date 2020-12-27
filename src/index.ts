@@ -21,6 +21,7 @@ const workerReg: Worker = new Worker('./src/RegWorkers/worker.js', {
 });
 
 workerPatient.on('message', (result: resultPatient) => {
+  //Добавление в очередь
   queue.add(result.value);
   console.log(`Добавлено! В очереди: ${queue.length}`);
   if (available) workerReg.postMessage('add');
@@ -33,6 +34,5 @@ workerReg.on('message', (result) => {
     queue.remove();
     console.log(`\t Удалено! Осталось: ${queue.length}`);
   }
+  if (available && queue.length > 0) workerReg.postMessage('add');
 });
-
-workerReg.on('message', (result) => {});
