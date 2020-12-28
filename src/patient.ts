@@ -1,3 +1,7 @@
 export class Patient {
-  constructor() {}
+  public readonly serveTime: number;
+  constructor(serveTime: number) {
+    this.serveTime = serveTime;
+  }
+  // constructor() {}
 }

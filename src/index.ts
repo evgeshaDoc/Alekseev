@@ -7,6 +7,11 @@ interface resultPatient {
   type: String;
 }
 
+interface resultDelete {
+  type: String;
+  indexToDelete?: number;
+}
+
 const queue = new Queue();
 let available = true;
 
@@ -24,15 +29,31 @@ workerPatient.on('message', (result: resultPatient) => {
   //Добавление в очередь
   queue.add(result.value);
   console.log(`Добавлено! В очереди: ${queue.length}`);
-  if (available) workerReg.postMessage('add');
+  console.log(queue.fullArr);
+
+  if (queue.length > 0 && available) {
+    const fastesIdx = queue.fastest;
+    workerReg.postMessage({
+      type: 'add',
+      patient: queue.byIndex(fastesIdx),
+      indexToDelete: fastesIdx,
+    });
+  }
 });
 
 workerReg.on('message', (result) => {
-  if (result === 'wait') available = false;
-  else if (result === 'free') available = true;
-  if (result === 'free') {
-    queue.remove();
+  if (result.type === 'wait') available = false;
+  else if (result.type === 'free') available = true;
+  if (result.type === 'free') {
+    console.log(queue.fullArr);
+    queue.remove(result.indexToDelete);
     console.log(`\t Удалено! Осталось: ${queue.length}`);
   }
-  if (available && queue.length > 0) workerReg.postMessage('add');
+  if (available && queue.length > 0) {
+    const fastesIdx = queue.fastest;
+    workerReg.postMessage({
+      type: 'add',
+      serverTime: queue.byIndex(fastesIdx),
+    });
+  }
 });
